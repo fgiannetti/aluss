@@ -27,10 +27,10 @@ function finish_if_error {
 ### Functions end ###
 
 echo "Saving last mirror list to '$MIRROR_FILE.old'"
-#mv $MIRROR_FILE $MIRROR_FILE.old
+mv $MIRROR_FILE $MIRROR_FILE.old
 
 echo "Importing updated mirror list with reflector..."
-#reflector --verbose --sort rate --save $MIRROR_FILE > /dev/null 2>&1
+reflector --verbose --sort rate --save $MIRROR_FILE > /dev/null 2>&1
 finish_if_error $? "Error while updating mirror list"
 
 echo "Removing orphan packages"
