@@ -4,21 +4,38 @@
 #
 #	Update all packages and do a system refresh
 #	Tasks taken from https://wiki.archlinux.org/index.php/System_maintenance#Regularly_upgrade_the_system
+#	The script needs reflector installed [https://wiki.archlinux.org/index.php/Reflector]
 #
 ###
 
+HELP_MSG="usage: aluss-update [options]
+Options:
+	-nc|--noconfirm       No confirm. Bypass the prompt in Y/n confirmations
+	-um|--updatemirrors   Update the pacman mirrors (require 'reflector' installed)"
 MIRROR_FILE=/etc/pacman.d/mirrorlist
 noconfirm=""
+update_mirrors=0
 
-if [ -n "$1" ]; then
-	case $1 in
-		-nc|--noconfirm)
-		noconfirm="--noconfirm"
-		;;
-		*)
-		echo "Unknown parameter. Use -nc|--noconfirm for bypass pacman prompts" && exit 1
-	esac
-fi
+while [[ $# > 0 ]]
+do
+	if [ -n "$1" ]; then
+		case $1 in
+			-nc|--noconfirm)
+			noconfirm="--noconfirm"
+			shift
+			;;
+			-um|--updatemirrors)
+			update_mirrors=1
+			shift
+			;;
+			-h|--help)
+			echo "$HELP_MSG" && exit 0
+			;;
+			*)
+			echo "Unknown parameter. Use [-nc|--noconfirm] [-um|--updatemirrors]" && exit 1
+		esac
+	fi
+done
 
 ### Functions###
 function finish_if_error {
@@ -26,12 +43,14 @@ function finish_if_error {
 }
 ### Functions end ###
 
-echo "Saving last mirror list to '$MIRROR_FILE.old'"
-mv $MIRROR_FILE $MIRROR_FILE.old
-
-echo "Importing updated mirror list with reflector..."
-reflector --verbose --sort rate --save $MIRROR_FILE > /dev/null 2>&1
-finish_if_error $? "Error while updating mirror list"
+if [ $update_mirrors -eq 1 ]; then
+	echo "Saving last mirror list to '$MIRROR_FILE.old'"
+	[ -f $MIRROR_FILE ] && mv $MIRROR_FILE $MIRROR_FILE.old
+	
+	echo "Importing updated mirror list with reflector..."
+	reflector --verbose --sort rate --save $MIRROR_FILE > /dev/null 2>&1
+	finish_if_error $? "Error while updating mirror list"
+fi
 
 echo "Removing orphan packages"
 if [[ ! -n $(pacman -Qdt) ]]; then
