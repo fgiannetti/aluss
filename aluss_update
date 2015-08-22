@@ -8,6 +8,17 @@
 ###
 
 MIRROR_FILE=/etc/pacman.d/mirrorlist
+noconfirm=""
+
+if [ -n "$1" ]; then
+	case $1 in
+		-nc|--noconfirm)
+		noconfirm="--noconfirm"
+		;;
+		*)
+		echo "Unknown parameter. Use -nc|--noconfirm for bypass pacman prompts" && exit 1
+	esac
+fi
 
 ### Functions###
 function finish_if_error {
@@ -16,17 +27,17 @@ function finish_if_error {
 ### Functions end ###
 
 echo "Saving last mirror list to '$MIRROR_FILE.old'"
-mv $MIRROR_FILE $MIRROR_FILE.old
+#mv $MIRROR_FILE $MIRROR_FILE.old
 
 echo "Importing updated mirror list with reflector..."
-reflector --verbose --sort rate --save $MIRROR_FILE > /dev/null 2>&1
+#reflector --verbose --sort rate --save $MIRROR_FILE > /dev/null 2>&1
 finish_if_error $? "Error while updating mirror list"
 
 echo "Removing orphan packages"
 if [[ ! -n $(pacman -Qdt) ]]; then
     echo "No orphans to remove."
 else
-    sudo pacman -Rns --noconfirm $(pacman -Qdtq --noconfirm)
+    sudo pacman -Rns $noconfirm $(pacman -Qdtq $noconfirm)
 fi
 
 finish_if_error $? "Error while deleting orphan packages"
@@ -38,11 +49,11 @@ paccache -ruk0
 finish_if_error $? "Error while deleting package cache"
 
 echo "Optimizing pacman"
-pacman -Sc --noconfirm && pacman-optimize
+pacman -Sc $noconfirm && pacman-optimize
 finish_if_error $? "Error while optimizing pacman"
 
 echo "Updating system (finally...)"
-pacman -Syu --noconfirm
+pacman -Syu $noconfirm
 finish_if_error $? "Error while updating system"
 
 echo "All tasks finished successfull!!!"
