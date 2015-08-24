@@ -44,6 +44,9 @@ function finish_if_error {
 ### Functions end ###
 
 if [ $update_mirrors -eq 1 ]; then
+	hash reflector > /dev/null 2>&1
+	finish_if_error $? "Reflector required for update mirror list"
+
 	echo "Saving last mirror list to '$MIRROR_FILE.old'"
 	[ -f $MIRROR_FILE ] && mv $MIRROR_FILE $MIRROR_FILE.old
 	
