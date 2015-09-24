@@ -61,6 +61,14 @@ if [ $update_mirrors -eq 1 ]; then
 	finish_if_error $? "Error while updating mirror list"
 fi
 
+echo "Optimizing pacman..."
+pacman -Sc $noconfirm && pacman-optimize
+finish_if_error $? "Error while optimizing pacman"
+
+echo "Updating system..."
+pacman -Syu $noconfirm
+finish_if_error $? "Error while updating system"
+
 echo "Removing orphan packages"
 if [[ ! -n $(pacman -Qdt) ]]; then
     echo "No orphans to remove."
@@ -76,12 +84,5 @@ finish_if_error $? "Error while deleting package cache"
 paccache -ruk0
 finish_if_error $? "Error while deleting package cache"
 
-echo "Optimizing pacman"
-pacman -Sc $noconfirm && pacman-optimize
-finish_if_error $? "Error while optimizing pacman"
-
-echo "Updating system (finally...)"
-pacman -Syu $noconfirm
-finish_if_error $? "Error while updating system"
 
 echo "All tasks finished successfull!!!"
