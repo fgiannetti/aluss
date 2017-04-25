@@ -85,4 +85,4 @@ paccache -ruk0
 finish_if_error $? "Error while deleting package cache"
 
 
-echo "All tasks finished successfull!!!"
+echo "All tasks was successfully finished!!!"
